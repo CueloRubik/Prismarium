@@ -1,0 +1,48 @@
+name: Importar Prismarium
+on:
+  push:
+    paths:
+      - '_upload_parts/**'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  importar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Reconstruir el proyecto
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -d _upload_parts || { echo "Paquete ya importado"; exit 0; }
+          cat _upload_parts/*.part > Prismarium.love
+          echo 'b66a4d73d8cdc4fd8efd598459acbea1a7383fddb5a4a2d76d244323c248b625  Prismarium.love' | sha256sum -c -
+          unzip -oq Prismarium.love -d .
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('screens.lua')
+          s=p.read_text(encoding='utf-8')
+          s=s.replace("    text('PRISM', 70, 92, 50, {0.96, 0.97, 1})\n    text('CORE', 70, 146, 50, {0.74, 0.86, 0.95})\n    text('Demo limpia con progresion, tutorial y coleccion.', 72, 230, 13, {0.76, 0.82, 0.92})","    text('PRISMARIUM', 70, 133, 37, {0.96, 0.97, 1})\n    text('Explora, combate y colecciona.', 72, 222, 13, {0.76, 0.82, 0.92})")
+          p.write_text(s,encoding='utf-8')
+          PY
+          rm -f Prismarium.love
+          zip -qr Prismarium.love . -x '.git/*' '_upload_parts/*' '.github/workflows/importar.yml'
+          test -f main.lua
+          test -f conf.lua
+          test -d assets
+          rm -rf _upload_parts
+          rm -f .github/workflows/importar.yml
+      - name: Publicar archivos del juego
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "Publicar código y recursos completos de Prismarium"
+            git push
+          fi
