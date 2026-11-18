@@ -94,7 +94,8 @@ end
 function love.load()
  love.math.setRandomSeed(os.time())
  UI.init();Audio.init();Progress.load();Maps.load();Maps.set(1);Screens.load();Tutorial.load();CardsUI.load()
- bestScore=tonumber(love.filesystem.read('best_score.txt')) or 0
+ local savedBestScore = love.filesystem.read('best_score.txt')
+ bestScore = tonumber(savedBestScore) or 0
 end
 
 function love.update(dt)
