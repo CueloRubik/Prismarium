@@ -1,0 +1,72 @@
+name: Verify and package Prismarium
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '*.lua'
+      - 'tests/**'
+      - 'assets/**'
+      - '.github/workflows/prismarium-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Install Lua
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lua5.4
+
+      - name: Validate Lua syntax
+        run: |
+          set -e
+          for file in *.lua tests/*.lua; do
+            luac5.4 -p "$file"
+          done
+
+      - name: Run all regression suites
+        run: |
+          set -e
+          for file in tests/*.lua; do
+            echo "Running $file"
+            lua5.4 "$file"
+          done
+
+      - name: Rebuild the LÖVE game from current sources
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile, ZIP_DEFLATED
+          files = list(Path('.').glob('*.lua'))
+          files += [p for p in Path('assets').rglob('*') if p.is_file()]
+          with ZipFile('Prismarium.love', 'w', compression=ZIP_DEFLATED, compresslevel=7) as archive:
+              for path in sorted(files):
+                  archive.write(path, path.as_posix())
+          print(f'Packaged {len(files)} game files')
+          PY
+
+      - name: Make verified game downloadable
+        uses: actions/upload-artifact@v4
+        with:
+          name: Prismarium-tested-love
+          path: Prismarium.love
+          if-no-files-found: error
+
+      - name: Update tracked Prismarium.love
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add Prismarium.love
+          if ! git diff --cached --quiet; then
+            git commit -m 'Rebuild Prismarium.love from verified source'
+            git push
+          fi
