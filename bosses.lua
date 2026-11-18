@@ -3,8 +3,8 @@ local Audio = require('audio')
 local Sprites = require('sprites')
 local Bosses = {}
 
-local names = {'GUARDIAN DE RAICES','COLOSO DE ACERO','ESPECTRO DE CRISTAL','ARQUITECTO DEL VACIO'}
-local colors = {{0.31,1,0.66},{1,0.45,0.18},{0.36,0.81,1},{0.79,0.40,1}}
+local names = {'GUARDIAN DE RAICES','COLOSO DE ACERO','ESPECTRO DE CRISTAL','ARQUITECTO DEL VACIO','HERALDO DEL CIELO','REY DEL AMANECER'}
+local colors = {{0.31,1,0.66},{1,0.45,0.18},{0.36,0.81,1},{0.79,0.40,1},{0.44,0.96,0.98},{1,0.82,0.36}}
 local function dist2(a,b,x,y) local dx,dy=a-x,b-y;return dx*dx+dy*dy end
 local function clamp(v,a,b) return math.max(a,math.min(b,v)) end
 local function pulse(x,y,r,c)
@@ -19,13 +19,14 @@ local function aimed(world,b,player,spread,count,speed,kind)
  for i=1,count do projectile(world,b.x,b.y,a+(i-(count+1)/2)*spread,speed,9,kind) end
 end
 function Bosses.create(index)
- local hp=({70,90,82,110})[index] or 70
- local b={kind=index,name=names[index],color=colors[index],x=400,y=178,vx=70,vy=36,
+ local archetype=({1,2,3,4,3,2})[index] or 1
+ local hp=({70,90,82,110,100,120})[index] or 70
+ local b={kind=archetype,mapIndex=index,name=names[index] or names[archetype],color=colors[index] or colors[archetype],x=400,y=178,vx=70,vy=36,
   radius=34,hp=hp,maxHp=hp,angle=0,attackTimer=0,hitCooldown=0.5,
   phase=1,time=0,warnings={},reveal=0,cycle=0,shield=true,stun=0,
   nodes={},portals={},decoys={},vulnerable=0,teleportWarning=0}
- if index==1 then b.nodes={node(195,190,2),node(605,190,2),node(400,412,2)}
- elseif index==4 then b.portals={node(172,250,2),node(628,250,2)} end
+ if archetype==1 then b.nodes={node(195,190,2),node(605,190,2),node(400,412,2)}
+ elseif archetype==4 then b.portals={node(172,250,2),node(628,250,2)} end
  return b
 end
 local function activeNodes(b)
