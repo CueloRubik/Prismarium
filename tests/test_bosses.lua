@@ -6,10 +6,10 @@ for _,k in ipairs({'push','pop','translate','rotate','scale','setColor','setLine
 g.getFont=function()return {getWidth=function(_,s)return #s*8 end} end
 local World=require('world');local Player=require('player');local Bosses=require('bosses')
 local tests=0
-for index=1,4 do
+for index=1,6 do
  Player.reset();World.reset();World.level=index;World.spawnBoss()
  local b=World.boss
- assert(b and b.maxHp>=70)
+ assert(b and b.maxHp>=70 and b.name and b.color, 'valid boss for map '..index)
  for i=1,900 do
   Player.update(1/60,400,430)
   World.update(1/60,Player)
