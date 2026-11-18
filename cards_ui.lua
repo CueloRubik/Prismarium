@@ -124,7 +124,7 @@ end
 
 function CardsUI.update(dt)
     CardsUI.hover = nil
-    for i,v in ipairs(CardsUI.flipTime) do
+    for i,v in pairs(CardsUI.flipTime) do
         CardsUI.flipTime[i] = math.min(1, v + dt * 1.8)
     end
 end
@@ -158,15 +158,14 @@ local function drawPacks()
         local n = #Progress.pending
         local cols = math.min(4,n)
         local gap = 18
-        local cardW, cardH = 120, 154
-        local totalW = cols * cardW + (cols - 1) * gap
-        local startX = 400 - totalW / 2
-        local row2 = n > 4 and 1 or 0
+        local cardW, cardH = n > 4 and 110 or 120, n > 4 and 114 or 154
         for i,id in ipairs(Progress.pending) do
             local row = math.floor((i-1)/4)
             local col = (i-1)%4
+            local rowCount = math.min(cols,n-row*4)
+            local startX = 400 - (rowCount * cardW + (rowCount - 1) * gap) / 2
             local x = startX + col * (cardW + gap)
-            local y = 205 + row * 188 + (row2==1 and 0 or 26)
+            local y = n > 4 and (194 + row * 174) or 231
             panel('lab_card_frame', x-8, y-8, cardW+16, cardH+16)
             local t = CardsUI.flipTime[i] or 0
             local flipped = CardsUI.flipped[i] and t >= 0.5
@@ -174,7 +173,7 @@ local function drawPacks()
             local rw = cardW * narrow
             drawImage(CardsUI.images[flipped and ('assets/cards/'..id..'.png') or 'assets/cards/back.png'], x + (cardW-rw)/2, y, rw, cardH)
             if not CardsUI.flipped[i] then
-                button('flip:'..i,'ABRIR',x+20,y+cardH+12,80,28,false,true)
+                button('flip:'..i,'ABRIR',x+(cardW-80)/2,y+cardH+10,80,26,false,true)
             else
                 center(Progress.skins[id].name, x + cardW/2, y + cardH + 12, CardsUI.fonts.tiny)
                 center(newAt(i) and 'NUEVA' or ('COPIA x'..Progress.getCardCount(id)), x + cardW/2, y + cardH + 28, CardsUI.fonts.tiny, newAt(i) and {0.56,1,0.74,1} or {1,0.82,0.46,1})
@@ -182,7 +181,7 @@ local function drawPacks()
         end
         local ready = true
         for i=1,n do if not CardsUI.flipped[i] or (CardsUI.flipTime[i] or 0) < 1 then ready = false end end
-        button('claim', ready and 'CONTINUAR' or 'REVELA TODAS', 289, 531, 222, 34, ready, true)
+        button('claim', ready and 'CONTINUAR' or 'REVELA TODAS', 289, 535, 222, 34, ready, true)
         return
     end
 
@@ -299,8 +298,8 @@ local function drawSkills()
         local row = math.floor((i-1)/2)
         local col = (i-1)%2
         local x = 58 + col*336
-        local y = 286 + row*90
-        panel('lab_core_frame', x, y, skillW, 86)
+        local y = 282 + row*82
+        panel('lab_core_frame', x, y, skillW, 78)
         local def = Progress.secondaryDefs[id]
         local ic = image('assets/ui/icon_' .. def.icon .. '.png')
         if ic then drawImage(ic, x+18, y+18, 34, 34) end
