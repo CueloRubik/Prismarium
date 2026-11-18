@@ -1,0 +1,26 @@
+package.path='./?.lua;'..package.path
+local files={}
+love={math={random=math.random},filesystem={read=function(p)return files[p] end,write=function(p,d)files[p]=d;return true end}}
+local P=require('progression')
+P.load();P.reward(400)
+assert(P.secondarySlots==1)
+assert(P.buySecondary('shield'))
+assert(P.equipSecondary(1,'shield'))
+assert(P.buySlot());assert(P.secondarySlots==2)
+assert(P.buySecondary('magnet'))
+assert(P.equipSecondary(2,'magnet'))
+assert(P.buySlot());assert(P.secondarySlots==3)
+assert(not P.buySlot(),'max three slots')
+assert(P.buySecondary('mine'))
+assert(P.equipSecondary(3,'mine'))
+assert(P.getEquippedSecondary()[3]=='mine')
+assert(P.equipSecondary(1,'magnet'))
+assert(P.getEquippedSecondary()[2]==false,'single instance per secondary')
+local chosen=P.skinOrder[8];P.cards[chosen]=2;P.evaluateUnlocks();assert(P.equipSkin(chosen))
+P.save();package.loaded.progression=nil
+local restored=require('progression');restored.load()
+assert(restored.secondarySlots==3)
+assert(restored.getEquippedSecondary()[1]=='magnet')
+assert(restored.getEquippedSecondary()[3]=='mine')
+assert(restored.equippedSkin==chosen)
+print('INTEGRATION OK: purchased skills, slot limits, load/save')
