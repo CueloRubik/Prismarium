@@ -23,4 +23,25 @@ CardsUI.tab=2;CardsUI.wheelmoved(0,-12);CardsUI.draw()
 assert(CardsUI.scroll>0,'album scroll must move')
 local maxScroll=30/4*218
 assert(CardsUI.scroll<=maxScroll,'scroll bounded')
-print('LAB UI OK: 3 tabs, 30-card grid, scroll, button boundaries')
+CardsUI.tab=1
+for _,n in ipairs({5,8}) do
+ Progress.pending={}
+ for i=1,n do Progress.pending[i]=Progress.skinOrder[i] end
+ CardsUI.flipped={}
+ CardsUI.flipTime={}
+ CardsUI.draw()
+ local claim
+ local buttons=CardsUI.buttons
+ for _,b in ipairs(buttons) do
+  if b.id=='claim' then claim=b end
+  assert(b.y+b.h<=600,'pack control outside screen: '..b.id)
+ end
+ assert(claim,'claim button missing for '..n..' cards')
+ for _,b in ipairs(buttons) do
+  if b.id:match('^flip:') then assert(b.y+b.h<claim.y,'pack reveal overlaps claim button') end
+ end
+end
+CardsUI.flipTime={[2]=0}
+CardsUI.update(0.25)
+assert(CardsUI.flipTime[2]>0,'second card flip animation must advance')
+print('LAB UI OK: 3 tabs, 30-card grid, 5/8-card packs, scrolling and animations')
